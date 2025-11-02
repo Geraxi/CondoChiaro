@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,25 +16,47 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ArrowLeft } from 'lucide-react'
+import { signUp } from '@/lib/auth-helpers'
+import toast from 'react-hot-toast'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [role, setRole] = useState<'admin' | 'tenant' | 'supplier'>('tenant')
+  const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
+  const router = useRouter()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMessage('')
 
-    // Placeholder per registrazione Supabase
-    // TODO: Implementare con Supabase Auth
-    setTimeout(() => {
-      setMessage('Registrazione inviata! Controlla la tua email per confermare.')
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      toast.error('Le password non coincidono')
       setLoading(false)
-    }, 1000)
+      return
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      toast.error('La password deve essere di almeno 8 caratteri')
+      setLoading(false)
+      return
+    }
+
+    const result = await signUp(email, password, name, role, companyName || undefined)
+
+    if (result.success) {
+      toast.success(result.message)
+      router.push('/login')
+    } else {
+      toast.error(result.message)
+    }
+
+    setLoading(false)
   }
 
   return (
