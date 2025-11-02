@@ -73,7 +73,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl">Accedi</CardTitle>
           <CardDescription>
-            Inserisci la tua email per ricevere il link di accesso
+            Inserisci email e password per accedere al tuo account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -87,15 +87,28 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
-            {message && (
-              <p className={`text-sm ${message.includes('errore') ? 'text-destructive' : 'text-primary'}`}>
-                {message}
-              </p>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="La tua password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="text-right">
+              <Link href="/reset-password" className="text-sm text-primary hover:underline">
+                Password dimenticata?
+              </Link>
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Invio in corso...' : 'Invia link di accesso'}
+              {loading ? 'Accesso in corso...' : 'Accedi'}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm">
