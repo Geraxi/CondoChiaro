@@ -156,6 +156,9 @@ CREATE TABLE IF NOT EXISTS documents (
   file_size BIGINT, -- in bytes
   file_type VARCHAR(100),
   category VARCHAR(100),
+  ai_summary TEXT, -- AI-generated summary of the document
+  ai_summary_generated_at TIMESTAMPTZ, -- When the AI summary was generated
+  description TEXT, -- Optional description provided by user
   created_by UUID REFERENCES admins(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
