@@ -2,29 +2,50 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
+import { signIn } from '@/lib/auth-helpers'
+import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
+  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMessage('')
 
-    // Placeholder per autenticazione Supabase
-    // TODO: Implementare con Supabase Auth
-    setTimeout(() => {
-      setMessage('Link di accesso inviato! Controlla la tua email.')
-      setLoading(false)
-    }, 1000)
+    const result = await signIn(email, password)
+
+    if (result.success) {
+      toast.success(result.message)
+
+      // Redirect based on role
+      switch (result.role) {
+        case 'admin':
+          router.push('/admin/dashboard')
+          break
+        case 'tenant':
+          router.push('/tenant/dashboard')
+          break
+        case 'supplier':
+          router.push('/supplier/dashboard')
+          break
+        default:
+          router.push('/dashboard')
+      }
+    } else {
+      toast.error(result.message)
+    }
+
+    setLoading(false)
   }
 
   return (
