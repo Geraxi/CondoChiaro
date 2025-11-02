@@ -84,7 +84,7 @@ export default function RegisterPage() {
           </div>
           <CardTitle className="text-2xl">Registrati</CardTitle>
           <CardDescription>
-            Crea il tuo account per iniziare
+            Crea il tuo account per iniziare a gestire i tuoi condomini
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,6 +98,7 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -109,25 +110,60 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Minimo 8 caratteri"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                minLength={8}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Conferma password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Ripeti la password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                disabled={loading}
+                minLength={8}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Ruolo</Label>
-              <Select value={role} onValueChange={(value: any) => setRole(value)}>
+              <Select value={role} onValueChange={(value: 'admin' | 'tenant' | 'supplier') => setRole(value)} disabled={loading}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Amministratore</SelectItem>
-                  <SelectItem value="tenant">Condòmino</SelectItem>
+                  <SelectItem value="admin">Amministratore di condominio</SelectItem>
+                  <SelectItem value="tenant">Condòmino/Proprietario</SelectItem>
                   <SelectItem value="supplier">Fornitore</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {message && (
-              <p className={`text-sm ${message.includes('errore') ? 'text-destructive' : 'text-primary'}`}>
-                {message}
-              </p>
+            {role === 'admin' && (
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Nome società (opzionale)</Label>
+                <Input
+                  id="companyName"
+                  type="text"
+                  placeholder="Studio Rossi & Associati"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Registrazione...' : 'Registrati'}
