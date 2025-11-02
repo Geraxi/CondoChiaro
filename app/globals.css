@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 15%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 15%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 174 72% 56%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 0 84% 60%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 174 72% 56%;
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Line clamp utility for text truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Remove browser default focus outlines */
+*:focus {
+  outline: none;
+}
+
+button:focus,
+input:focus,
+label:focus {
+  outline: none !important;
+}
+
+.neon-shadow {
+  box-shadow: 0 0 20px rgba(31, 169, 160, 0.1);
+}
+
+.role-card {
+  transition: all 0.3s ease-in-out;
+}
+
+.role-card:hover {
+  border-color: #1FA9A0;
+  box-shadow: 0 10px 40px rgba(31, 169, 160, 0.15);
+}
+
+.role-icon-container {
+  transition: all 0.4s ease-in-out;
+}
+
+.group:hover .role-icon-container {
+  background-color: rgba(31, 169, 160, 0.2);
+  box-shadow: 0 0 20px rgba(31, 169, 160, 0.4);
+}
