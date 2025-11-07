@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS admins (
   company_name VARCHAR(255),
   subscription_status VARCHAR(50) DEFAULT 'trial', -- trial, active, past_due, canceled
   subscription_id VARCHAR(255), -- Stripe subscription ID
+  stripe_customer_id VARCHAR(255),
+  stripe_connect_account_id VARCHAR(255),
   trial_ends_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -48,6 +50,8 @@ CREATE TABLE IF NOT EXISTS admins (
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email);
 CREATE INDEX IF NOT EXISTS idx_admins_subscription_status ON admins(subscription_status);
+CREATE INDEX IF NOT EXISTS idx_admins_stripe_customer ON admins(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_admins_connect_account ON admins(stripe_connect_account_id);
 
 -- ============================================================================
 -- CONDOMINIUM MANAGEMENT
@@ -111,6 +115,7 @@ CREATE TABLE IF NOT EXISTS tenants (
   phone VARCHAR(50),
   payment_status VARCHAR(50) DEFAULT 'pending', -- pending, paid, overdue, exempt
   last_payment_date TIMESTAMPTZ,
+  stripe_customer_id VARCHAR(255),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT unique_condo_tenant_email UNIQUE (condominium_id, email)
@@ -121,6 +126,7 @@ CREATE INDEX IF NOT EXISTS idx_tenants_condominium_id ON tenants(condominium_id)
 CREATE INDEX IF NOT EXISTS idx_tenants_apartment_id ON tenants(apartment_id);
 CREATE INDEX IF NOT EXISTS idx_tenants_email ON tenants(email);
 CREATE INDEX IF NOT EXISTS idx_tenants_payment_status ON tenants(payment_status);
+CREATE INDEX IF NOT EXISTS idx_tenants_stripe_customer ON tenants(stripe_customer_id);
 
 -- ============================================================================
 -- SUPPLIERS
@@ -134,6 +140,12 @@ CREATE TABLE IF NOT EXISTS suppliers (
   email VARCHAR(255),
   phone VARCHAR(50),
   service_type VARCHAR(100) NOT NULL,
+  plan VARCHAR(20) DEFAULT 'free', -- free, pro, business
+  plan_status VARCHAR(20) DEFAULT 'inactive', -- inactive, active, past_due, canceled
+  stripe_customer_id VARCHAR(255),
+  stripe_subscription_id VARCHAR(255),
+  stripe_connect_account_id VARCHAR(255),
+  plan_renewal_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT unique_condo_supplier UNIQUE (condominium_id, name, service_type)
@@ -142,6 +154,35 @@ CREATE TABLE IF NOT EXISTS suppliers (
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_suppliers_condominium_id ON suppliers(condominium_id);
 CREATE INDEX IF NOT EXISTS idx_suppliers_service_type ON suppliers(service_type);
+CREATE INDEX IF NOT EXISTS idx_suppliers_plan ON suppliers(plan);
+CREATE INDEX IF NOT EXISTS idx_suppliers_stripe_customer ON suppliers(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_suppliers_connect_account ON suppliers(stripe_connect_account_id);
+
+-- ============================================================================
+-- SUBSCRIPTIONS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  admin_id UUID NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+  stripe_subscription_id VARCHAR(255),
+  stripe_customer_id VARCHAR(255),
+  base_fee DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  per_unit_fee DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  condo_count INTEGER NOT NULL DEFAULT 0,
+  total_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'inactive',
+  current_period_end TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (admin_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_admin_id ON subscriptions(admin_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+
+CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================================
 -- DOCUMENTS
@@ -156,6 +197,7 @@ CREATE TABLE IF NOT EXISTS documents (
   file_size BIGINT, -- in bytes
   file_type VARCHAR(100),
   category VARCHAR(100),
+  ai_summary TEXT, -- AI-generated summary of document content
   created_by UUID REFERENCES admins(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -210,6 +252,7 @@ ALTER TABLE apartments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- System settings: Only admins can read, super admins can modify
 CREATE POLICY "System settings readable by authenticated users" ON system_settings
@@ -311,6 +354,14 @@ CREATE POLICY "Admins can manage documents in own condos" ON documents
     )
   );
 
+-- Subscriptions: each admin can manage their own subscription row
+CREATE POLICY "Admins can view own subscription" ON subscriptions
+  FOR SELECT USING (admin_id = auth.uid());
+
+CREATE POLICY "Admins can manage own subscription" ON subscriptions
+  FOR ALL USING (admin_id = auth.uid())
+  WITH CHECK (admin_id = auth.uid());
+
 -- ============================================================================
 -- FUNCTIONS FOR DATA AGGREGATION
 -- ============================================================================
@@ -344,3 +395,195 @@ CREATE TRIGGER update_condo_stats_on_apartment_change
   AFTER INSERT OR UPDATE OR DELETE ON apartments
   FOR EACH ROW EXECUTE FUNCTION update_condominium_stats();
 
+-- ============================================================================
+-- PAYMENTS (PAGAMENTI)
+-- ============================================================================
+
+-- Payments table for tracking condo fee payments
+CREATE TABLE IF NOT EXISTS pagamenti (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  due_date DATE NOT NULL,
+  paid BOOLEAN DEFAULT false,
+  paid_at TIMESTAMPTZ,
+  payment_method VARCHAR(50), -- cash, bank_transfer, card, etc.
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_pagamenti_condominium_id ON pagamenti(condominium_id);
+CREATE INDEX IF NOT EXISTS idx_pagamenti_tenant_id ON pagamenti(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_pagamenti_due_date ON pagamenti(due_date);
+CREATE INDEX IF NOT EXISTS idx_pagamenti_paid ON pagamenti(paid);
+
+-- Enable RLS
+ALTER TABLE pagamenti ENABLE ROW LEVEL SECURITY;
+
+-- RLS: Admins can only see payments for their condominiums
+CREATE POLICY "Admins can view payments in own condos" ON pagamenti
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM condominiums 
+      WHERE condominiums.id = pagamenti.condominium_id 
+      AND condominiums.admin_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can manage payments in own condos" ON pagamenti
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM condominiums 
+      WHERE condominiums.id = pagamenti.condominium_id 
+      AND condominiums.admin_id = auth.uid()
+    )
+  );
+
+-- Trigger for updated_at
+CREATE TRIGGER update_pagamenti_updated_at BEFORE UPDATE ON pagamenti
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- PLATFORM PAYMENT TRANSACTIONS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS payments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  payer_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
+  payee_id UUID NOT NULL,
+  payee_type VARCHAR(20) NOT NULL, -- admin or supplier
+  condo_id UUID REFERENCES condominiums(id) ON DELETE SET NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  currency VARCHAR(10) DEFAULT 'eur',
+  platform_fee_percent DECIMAL(5, 2) DEFAULT 1.0,
+  platform_fee_amount DECIMAL(10, 2) DEFAULT 0,
+  stripe_fee_percent DECIMAL(5, 2) DEFAULT 0.25,
+  stripe_fee_amount DECIMAL(10, 2) DEFAULT 0,
+  net_amount DECIMAL(10, 2) DEFAULT 0,
+  stripe_payment_id VARCHAR(255),
+  status VARCHAR(20) DEFAULT 'pending', -- pending, processing, succeeded, failed
+  metadata JSONB DEFAULT '{}'::JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payments_payer ON payments(payer_id);
+CREATE INDEX IF NOT EXISTS idx_payments_payee ON payments(payee_id);
+CREATE INDEX IF NOT EXISTS idx_payments_condo ON payments(condo_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments(created_at DESC);
+
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can view payments analytics" ON payments
+  FOR SELECT USING (
+    payee_type = 'admin' AND payee_id = auth.uid() OR
+    EXISTS (
+      SELECT 1 FROM condominiums 
+      WHERE condominiums.id = payments.condo_id 
+      AND condominiums.admin_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can record payments for own condos" ON payments
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM condominiums 
+      WHERE condominiums.id = payments.condo_id 
+      AND condominiums.admin_id = auth.uid()
+    )
+  );
+
+CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON payments
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- MAINTENANCE TASKS (INTERVENTI)
+-- ============================================================================
+
+-- Maintenance tasks/interventions table
+CREATE TABLE IF NOT EXISTS interventi (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+  fornitore_id UUID REFERENCES suppliers(id) ON DELETE SET NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  status VARCHAR(50) DEFAULT 'pending', -- pending, in_progress, completed, canceled
+  priority VARCHAR(20) DEFAULT 'medium', -- low, medium, high, urgent
+  assigned_date TIMESTAMPTZ,
+  completed_date TIMESTAMPTZ,
+  cost DECIMAL(10, 2),
+  created_by UUID REFERENCES admins(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_interventi_condominium_id ON interventi(condominium_id);
+CREATE INDEX IF NOT EXISTS idx_interventi_fornitore_id ON interventi(fornitore_id);
+CREATE INDEX IF NOT EXISTS idx_interventi_status ON interventi(status);
+CREATE INDEX IF NOT EXISTS idx_interventi_priority ON interventi(priority);
+
+-- Enable RLS
+ALTER TABLE interventi ENABLE ROW LEVEL SECURITY;
+
+-- RLS: Admins can see interventions for their condos, suppliers can see assigned ones
+CREATE POLICY "Admins can view interventions in own condos" ON interventi
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM condominiums 
+      WHERE condominiums.id = interventi.condominium_id 
+      AND condominiums.admin_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Admins can manage interventions in own condos" ON interventi
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM condominiums 
+      WHERE condominiums.id = interventi.condominium_id 
+      AND condominiums.admin_id = auth.uid()
+    )
+  );
+
+-- Trigger for updated_at
+CREATE TRIGGER update_interventi_updated_at BEFORE UPDATE ON interventi
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- IMPORT LOGS
+-- ============================================================================
+
+-- Import logs table for tracking Excel/CSV imports
+CREATE TABLE IF NOT EXISTS import_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  admin_id UUID NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+  file_name VARCHAR(255) NOT NULL,
+  file_size BIGINT,
+  file_type VARCHAR(50), -- excel, csv
+  import_type VARCHAR(50), -- condominiums, tenants, apartments, payments
+  status VARCHAR(50) DEFAULT 'pending', -- pending, processing, completed, failed
+  records_imported INTEGER DEFAULT 0,
+  records_failed INTEGER DEFAULT 0,
+  error_message TEXT,
+  imported_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_import_logs_admin_id ON import_logs(admin_id);
+CREATE INDEX IF NOT EXISTS idx_import_logs_status ON import_logs(status);
+CREATE INDEX IF NOT EXISTS idx_import_logs_imported_at ON import_logs(imported_at DESC);
+
+-- Enable RLS
+ALTER TABLE import_logs ENABLE ROW LEVEL SECURITY;
+
+-- RLS: Admins can only see their own import logs
+CREATE POLICY "Admins can view own import logs" ON import_logs
+  FOR SELECT USING (admin_id = auth.uid());
+
+CREATE POLICY "Admins can create own import logs" ON import_logs
+  FOR INSERT WITH CHECK (admin_id = auth.uid());

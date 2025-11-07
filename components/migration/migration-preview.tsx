@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Fragment } from 'react'
 
 const STEPS = [
@@ -122,7 +123,7 @@ export function MigrationPreview() {
 
         <div className="absolute right-6 bottom-8 flex items-center gap-3 rounded-[24px] border border-white/15 bg-[#041F2E]/80 px-6 py-4 shadow-[0_20px_60px_rgba(12,74,110,0.45)] backdrop-blur">
           <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#39D5C8]/30 bg-[#0C394B]/80 backdrop-blur">
-            <img src="/images/condochiaro-logo.png" alt="CondoChiaro" className="h-6 w-6" />
+            <Image src="/images/condochiaro-logo.png" alt="CondoChiaro" width={24} height={24} className="h-6 w-6" />
           </div>
           <div className="text-left">
             <p className="text-sm font-semibold text-white">CondoChiaro</p>

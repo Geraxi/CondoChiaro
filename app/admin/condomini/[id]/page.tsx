@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Building2, Users, Home, Euro, FileText, Wrench, Plus, Edit, Mail, Phone } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { supabase, Condominium, Tenant, Apartment, Supplier, Document } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 import { AddTenantModal } from '@/components/condominiums/add-tenant-modal'
@@ -28,14 +29,9 @@ export default function CondominiumDetailPage() {
   const [showApartmentModal, setShowApartmentModal] = useState(false)
   const [showSupplierModal, setShowSupplierModal] = useState(false)
   const [showDocumentModal, setShowDocumentModal] = useState(false)
+  const [upgradingSupplierId, setUpgradingSupplierId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (condominiumId) {
-      loadData()
-    }
-  }, [condominiumId])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
     try {
       // Load condominium
@@ -111,10 +107,51 @@ export default function CondominiumDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [condominiumId])
+
+  useEffect(() => {
+    if (condominiumId) {
+      loadData()
+    }
+  }, [condominiumId, loadData])
 
   const handleRefresh = () => {
     loadData()
+  }
+
+  const handleSupplierUpgrade = async (supplier: Supplier) => {
+    try {
+      setUpgradingSupplierId(supplier.id)
+      const origin = window.location.origin
+      const successUrl = `${origin}/admin/condomini/${condominiumId}?supplier=${supplier.id}&status=success`
+      const cancelUrl = `${origin}/admin/condomini/${condominiumId}?supplier=${supplier.id}&status=canceled`
+
+      const response = await fetch('/api/suppliers/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          supplierId: supplier.id,
+          successUrl,
+          cancelUrl,
+        }),
+      })
+
+      const payload = await response.json()
+      if (!response.ok || !payload.success) {
+        throw new Error(payload?.message || 'Impossibile avviare l\'upgrade')
+      }
+
+      if (payload.data?.url) {
+        window.location.href = payload.data.url
+      } else {
+        toast.error('URL di checkout non disponibile')
+      }
+    } catch (error: any) {
+      console.error('Supplier upgrade error:', error)
+      toast.error(error?.message ?? 'Errore durante l\'upgrade del fornitore')
+    } finally {
+      setUpgradingSupplierId(null)
+    }
   }
 
   if (loading) {
@@ -414,8 +451,15 @@ export default function CondominiumDetailPage() {
               {suppliers.map((supplier) => (
                 <Card key={supplier.id} className="bg-[#1A1F26] border-white/10">
                   <CardHeader>
-                    <CardTitle>{supplier.name}</CardTitle>
-                    <CardDescription>{supplier.service_type}</CardDescription>
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <CardTitle>{supplier.name}</CardTitle>
+                        <CardDescription>{supplier.service_type}</CardDescription>
+                      </div>
+                      <Badge variant={supplier.plan === 'pro' ? 'default' : 'outline'}>
+                        Piano {supplier.plan?.toUpperCase() ?? 'FREE'}
+                      </Badge>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm">
@@ -432,6 +476,21 @@ export default function CondominiumDetailPage() {
                         </div>
                       )}
                     </div>
+                    {supplier.plan === 'pro' ? (
+                      <div className="mt-4 text-xs text-green-400">
+                        Pro attivo{supplier.plan_renewal_at ? ` • Rinnovo ${new Date(supplier.plan_renewal_at).toLocaleDateString('it-IT')}` : ''}
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 bg-white/5 border-white/10 hover:bg-white/10"
+                        disabled={upgradingSupplierId === supplier.id}
+                        onClick={() => handleSupplierUpgrade(supplier)}
+                      >
+                        {upgradingSupplierId === supplier.id ? 'Reindirizzamento...' : 'Attiva Pro (€9,99/mese)'}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -480,4 +539,3 @@ export default function CondominiumDetailPage() {
     </div>
   )
 }
-

@@ -25,6 +25,8 @@ interface FormData {
 export function AddDocumentModal({ condominiumId, onClose, onSuccess }: AddDocumentModalProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [generateSummary, setGenerateSummary] = useState(false)
+  const [generatingSummary, setGeneratingSummary] = useState(false)
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<FormData>({
     defaultValues: {
       category: 'altro'
@@ -54,19 +56,59 @@ export function AddDocumentModal({ condominiumId, onClose, onSuccess }: AddDocum
         .from('documents')
         .getPublicUrl(`condominiums/${condominiumId}/${fileName}`)
 
-      // Create document record
-      const { error: docError } = await supabase
+      // Create document record first
+      const { data: documentData, error: docError } = await (supabase as any)
         .from('documents')
         .insert({
           condominium_id: condominiumId,
           name: data.name,
           file_url: publicUrl,
-          category: data.category
-        } as any)
+          category: data.category,
+          file_size: file.size,
+          file_type: file.type,
+          ai_summary: null
+        } as Record<string, unknown>)
+        .select('id')
+        .single()
 
       if (docError) throw docError
 
-      toast.success('Documento caricato con successo!')
+      // Generate AI summary if requested and file is PDF
+      const createdDocumentId = (documentData?.id || null) as string | null
+
+      if (generateSummary && file.type === 'application/pdf' && createdDocumentId) {
+        setGeneratingSummary(true)
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          const response = await fetch('/api/ai/summarize', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+              documentId: createdDocumentId,
+            }),
+          })
+
+          if (response.ok) {
+            const result = await response.json()
+            if (result.success && result.data?.summary) {
+              toast.success('Documento caricato e riassunto generato!')
+            } else {
+              toast.success('Documento caricato! (Generazione riassunto non riuscita)')
+            }
+          }
+        } catch (error) {
+          console.error('Error generating summary:', error)
+          toast.success('Documento caricato! (Generazione riassunto non disponibile)')
+        } finally {
+          setGeneratingSummary(false)
+        }
+      } else {
+        toast.success('Documento caricato con successo!')
+      }
+
       onSuccess()
     } catch (error: any) {
       console.error('Error uploading document:', error)
@@ -168,10 +210,14 @@ export function AddDocumentModal({ condominiumId, onClose, onSuccess }: AddDocum
               </Button>
               <Button
                 type="submit"
-                disabled={uploading || !file}
+                disabled={uploading || generatingSummary || !file}
                 className="flex-1 bg-[#1FA9A0] hover:bg-[#17978E]"
               >
-                {uploading ? 'Caricamento...' : 'Carica'}
+                {uploading
+                  ? 'Caricamento...'
+                  : generatingSummary
+                    ? 'Generazione riassunto...'
+                    : 'Carica'}
               </Button>
             </div>
           </form>
@@ -180,4 +226,3 @@ export function AddDocumentModal({ condominiumId, onClose, onSuccess }: AddDocum
     </AnimatePresence>
   )
 }
-

@@ -54,7 +54,7 @@ export default function RegisterPage() {
               src="/images/condochiaro-logo.png"
               alt="CondoChiaro Logo"
               width={150}
-              height={45}
+              height={150}
               className="object-contain"
               priority
             />

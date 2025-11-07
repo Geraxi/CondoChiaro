@@ -29,10 +29,19 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: #0E141B;
+    color: #ffffff;
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 

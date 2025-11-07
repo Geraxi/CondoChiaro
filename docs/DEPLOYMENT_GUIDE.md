@@ -50,7 +50,17 @@ SUPABASE_SERVICE_ROLE_KEY=staging-service-role-key
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_test_...
-STRIPE_PRICE_ID=price_test_...
+STRIPE_BASE_PRICE_ID=price_base_test_...
+STRIPE_CONDOMINIUM_PRICE_ID=price_condo_test_...
+STRIPE_SUPPLIER_PRO_PRICE_ID=price_supplier_pro_test_...
+
+BASE_FEE=29.99
+PER_CONDO_FEE=8
+PLATFORM_FEE_PERCENT=1.0
+STRIPE_CONNECT_ENABLED=true
+STRIPE_SUPPLIER_PRO_PRICE=9.99
+STRIPE_CARD_FEE_PERCENT=0.25
+STRIPE_DEFAULT_CURRENCY=eur
 
 NODE_ENV=production
 NEXT_PUBLIC_APP_URL=https://staging.condochiaro.it
@@ -97,7 +107,17 @@ SUPABASE_SERVICE_ROLE_KEY=prod-service-role-key
 STRIPE_SECRET_KEY=sk_live_...  # ⚠️ LIVE KEY
 STRIPE_PUBLISHABLE_KEY=pk_live_...  # ⚠️ LIVE KEY
 STRIPE_WEBHOOK_SECRET=whsec_live_...
-STRIPE_PRICE_ID=price_live_...
+STRIPE_BASE_PRICE_ID=price_base_live_...
+STRIPE_CONDOMINIUM_PRICE_ID=price_condo_live_...
+STRIPE_SUPPLIER_PRO_PRICE_ID=price_supplier_pro_live_...
+
+BASE_FEE=29.99
+PER_CONDO_FEE=8
+PLATFORM_FEE_PERCENT=1.0
+STRIPE_CONNECT_ENABLED=true
+STRIPE_SUPPLIER_PRO_PRICE=9.99
+STRIPE_CARD_FEE_PERCENT=0.25
+STRIPE_DEFAULT_CURRENCY=eur
 
 NODE_ENV=production
 NEXT_PUBLIC_APP_URL=https://condochiaro.it
@@ -294,4 +314,8 @@ Before going live:
 - **Vercel Issues:** support@vercel.com
 - **Supabase Issues:** support@supabase.io
 - **Stripe Issues:** support@stripe.com
+
+
+
+
 

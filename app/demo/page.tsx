@@ -24,7 +24,7 @@ export default function DemoPage() {
             src="/images/condochiaro-logo.png"
             alt="CondoChiaro Logo"
             width={200}
-            height={60}
+            height={200}
             className="object-contain mx-auto mb-6"
             priority
           />

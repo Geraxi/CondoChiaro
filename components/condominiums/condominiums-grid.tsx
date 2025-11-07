@@ -77,8 +77,8 @@ export function CondominiumsGrid() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-bold mb-2">I miei Condomini</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-3xl font-bold mb-2 text-white">I miei Condomini</h2>
+            <p className="text-gray-400">
               Gestisci tutti i tuoi condomini da un'unica dashboard
             </p>
           </div>
@@ -103,7 +103,7 @@ export function CondominiumsGrid() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Building2 className="w-16 h-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Nessun condominio ancora</h3>
+              <h3 className="text-xl font-semibold mb-2 text-white">Nessun condominio ancora</h3>
               <p className="text-gray-400 mb-6 text-center">
                 Inizia aggiungendo il tuo primo condominio o importa i dati esistenti
               </p>
@@ -149,7 +149,7 @@ export function CondominiumsGrid() {
                         </div>
                       )}
                     </div>
-                    <CardTitle className="text-xl group-hover:text-[#1FA9A0] transition-colors">
+                    <CardTitle className="text-xl text-white group-hover:text-[#1FA9A0] transition-colors">
                       {condominium.name}
                     </CardTitle>
                   </CardHeader>

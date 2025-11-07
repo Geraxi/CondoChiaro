@@ -17,7 +17,7 @@ export async function checkMaintenanceMode(): Promise<MaintenanceStatus> {
   try {
     const { data, error } = await supabase
       .from('system_settings')
-      .select('value')
+      .select('value, message')
       .eq('key', 'maintenance_mode')
       .single()
 
@@ -54,4 +54,9 @@ export async function canBypassMaintenance(userId: string): Promise<boolean> {
     return false
   }
 }
+
+
+
+
+
 

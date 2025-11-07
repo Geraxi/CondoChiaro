@@ -22,8 +22,8 @@ export function CardDocuments() {
             <div key={doc.id} className="flex items-center gap-3 p-3 bg-[#0E141B] rounded-lg border border-white/5 hover:border-[#1FA9A0]/30 transition">
               <FileText className="h-5 w-5 text-[#1FA9A0]" />
               <div className="flex-1">
-                <h4 className="font-medium text-sm">{doc.title}</h4>
-                <p className="text-xs text-muted-foreground">{doc.date}</p>
+                <h4 className="font-medium text-sm text-white">{doc.title}</h4>
+                <p className="text-xs text-gray-400">{doc.date}</p>
               </div>
             </div>
           ))}

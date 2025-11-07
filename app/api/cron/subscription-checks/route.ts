@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { stripe } from '@/lib/stripe'
+import { stripe, isStripeConfigured } from '@/lib/stripe'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 /**
@@ -18,11 +18,29 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (!isStripeConfigured || !stripe) {
+      console.warn('Stripe not configured; skipping subscription checks cron job')
+      return NextResponse.json(
+        successResponse(
+          { checked: 0, updated: 0 },
+          'Stripe not configured; subscription checks skipped'
+        )
+      )
+    }
+
     // Get all active subscriptions
     const { data: admins, error } = await supabase
       .from('admins')
-      .select('id, subscription_id, trial_ends_at')
+      .select('id, subscription_id, trial_ends_at, subscription_status')
       .in('subscription_status', ['active', 'trialing'])
+      .returns<
+        Array<{
+          id: string
+          subscription_id: string | null
+          subscription_status: string
+          trial_ends_at: string | null
+        }>
+      >()
 
     if (error) {
       throw error
@@ -38,7 +56,7 @@ export async function GET(request: NextRequest) {
       if (admin.trial_ends_at && new Date(admin.trial_ends_at) < new Date()) {
         if (admin.subscription_status === 'trialing' && !admin.subscription_id) {
           // Trial ended without subscription - cancel access
-          await supabase
+          await (supabase as any)
             .from('admins')
             .update({
               subscription_status: 'canceled',
@@ -59,7 +77,7 @@ export async function GET(request: NextRequest) {
 
           // Update if status changed
           if (subscription.status !== admin.subscription_status) {
-            await supabase
+            await (supabase as any)
               .from('admins')
               .update({
                 subscription_status: subscription.status,
@@ -88,4 +106,8 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+
+
+
 

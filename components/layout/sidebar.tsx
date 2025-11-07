@@ -15,7 +15,8 @@ import {
   Settings,
   ClipboardList,
   Receipt,
-  Upload
+  Upload,
+  Building2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -39,6 +40,7 @@ export function Sidebar({ role }: SidebarProps) {
     { label: 'Pagamenti', href: '/admin/payments', icon: Wallet },
     { label: 'Assemblee', href: '/admin/assemblies', icon: Users },
     { label: 'Manutenzione', href: '/admin/maintenance', icon: Wrench },
+    { label: 'Fornitori nella tua zona', href: '/admin/suppliers', icon: Building2 },
     { label: 'Comunicazioni', href: '/admin/communications', icon: MessageSquare },
     { label: 'Assicurazione', href: '/admin/insurance', icon: Shield },
     { label: 'Report', href: '/admin/reports', icon: BarChart3 },
@@ -70,14 +72,15 @@ export function Sidebar({ role }: SidebarProps) {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-[#1A1F26] border-r border-white/10 z-40">
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className="p-6 border-b border-white/10">
+        <div className="h-16 flex items-center justify-center border-b border-white/10 px-4">
           <Link href={`/${role}/dashboard`} className="flex items-center">
             <Image
               src="/images/condochiaro-logo.png"
               alt="CondoChiaro Logo"
-              width={140}
-              height={40}
-              className="object-contain"
+              width={80}
+              height={80}
+              className="object-contain opacity-70 hover:opacity-100 transition-opacity"
+              style={{ imageRendering: 'auto', backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
               priority
             />
           </Link>
@@ -85,7 +88,7 @@ export function Sidebar({ role }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="space-y-2">
+          <ul className="space-y-2 list-none">
             {items.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
@@ -95,10 +98,10 @@ export function Sidebar({ role }: SidebarProps) {
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative z-10",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative z-10 text-gray-300 visited:text-gray-300",
                       isActive
-                        ? "bg-[#1FA9A0]/20 text-[#1FA9A0] border border-[#1FA9A0]/30"
-                        : "text-gray-300 hover:text-white hover:bg-white/5"
+                        ? "bg-[#1FA9A0]/20 text-[#1FA9A0] visited:text-[#1FA9A0] border border-[#1FA9A0]/30"
+                        : "hover:text-white hover:bg-white/5"
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -114,7 +117,7 @@ export function Sidebar({ role }: SidebarProps) {
         <div className="p-4 border-t border-white/10">
           <Link 
             href="/"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-white transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
           >
             ← Torna alla home
           </Link>

@@ -2,18 +2,19 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import {
+  maintenanceTickets,
+  supplierInvoices,
+  supplierPerformance,
+  workOrders,
+} from '@/lib/data/maintenance'
 
-const performanceData = [
-  { month: 'Gen', completati: 8, in_lavoro: 3 },
-  { month: 'Feb', completati: 12, in_lavoro: 2 },
-  { month: 'Mar', completati: 10, in_lavoro: 4 },
-]
-
-const paymentData = [
-  { invoice: 'INV-001', amount: 1200, status: 'pagato', date: '2024-01-10' },
-  { invoice: 'INV-002', amount: 850, status: 'in_attesa', date: '2024-01-15' },
-  { invoice: 'INV-003', amount: 2100, status: 'pagato', date: '2024-01-20' },
-]
+const activeTickets = maintenanceTickets.length
+const completedOrders = workOrders.filter((order) => order.status === 'completato').length
+const inProgressOrders = workOrders.filter((order) => order.status === 'in_lavoro')
+const pendingInvoicesTotal = supplierInvoices
+  .filter((invoice) => invoice.status !== 'pagato')
+  .reduce((total, invoice) => total + invoice.amount, 0)
 
 export default function SupplierDashboard() {
   return (
@@ -30,10 +31,10 @@ export default function SupplierDashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
-            { label: 'Ticket Attivi', value: '3', color: 'text-[#1FA9A0]' },
-            { label: 'Ordini Completati', value: '30', color: 'text-green-400' },
-            { label: 'Fatture Pendenti', value: '€8,900', color: 'text-yellow-400' },
-            { label: 'Voto Medio', value: '4.8/5', color: 'text-blue-400' },
+            { label: 'Ticket Attivi', value: String(activeTickets), color: 'text-[#1FA9A0]' },
+            { label: 'Ordini Completati', value: String(completedOrders), color: 'text-green-400' },
+            { label: 'Fatture Pendenti', value: `€${pendingInvoicesTotal.toLocaleString('it-IT')}`, color: 'text-yellow-400' },
+            { label: 'Ordini in Lavorazione', value: String(inProgressOrders.length), color: 'text-blue-400' },
           ].map((stat, idx) => (
             <Card key={idx} className="bg-[#1A1F26] border-white/10">
               <CardHeader className="pb-2">
@@ -55,7 +56,7 @@ export default function SupplierDashboard() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={performanceData}>
+                <BarChart data={supplierPerformance}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2A3441" />
                   <XAxis dataKey="month" stroke="#A1A8B3" />
                   <YAxis stroke="#A1A8B3" />
@@ -75,8 +76,8 @@ export default function SupplierDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {paymentData.map((payment, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-[#0E141B] rounded-lg border border-white/5">
+                {supplierInvoices.map((payment) => (
+                  <div key={payment.invoice} className="flex items-center justify-between p-3 bg-[#0E141B] rounded-lg border border-white/5">
                     <div>
                       <p className="font-medium text-sm">{payment.invoice}</p>
                       <p className="text-xs text-muted-foreground">{payment.date}</p>
@@ -102,20 +103,16 @@ export default function SupplierDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[
-                { id: 'T-001', title: 'Riparazione ascensore', building: 'Via Roma 10', status: 'in_lavoro' },
-                { id: 'T-002', title: 'Pulizia scale', building: 'Via Verdi 5', status: 'assegnato' },
-                { id: 'T-003', title: 'Manutenzione caldaia', building: 'Via Milano 3', status: 'in_lavoro' },
-              ].map((ticket, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-[#0E141B] rounded-lg border border-white/5">
+              {workOrders.map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-4 bg-[#0E141B] rounded-lg border border-white/5">
                   <div>
-                    <p className="font-medium">{ticket.id} - {ticket.title}</p>
-                    <p className="text-sm text-muted-foreground">{ticket.building}</p>
+                    <p className="font-medium">{order.id} - {order.title}</p>
+                    <p className="text-sm text-muted-foreground">{order.building}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs ${
-                    ticket.status === 'in_lavoro' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'
+                    order.status === 'in_lavoro' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
                   }`}>
-                    {ticket.status === 'in_lavoro' ? 'In Lavoro' : 'Assegnato'}
+                    {order.status === 'in_lavoro' ? `In Lavoro (${order.progress}%)` : 'Completato'}
                   </span>
                 </div>
               ))}

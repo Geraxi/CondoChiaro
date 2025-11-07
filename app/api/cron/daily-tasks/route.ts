@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { stripe } from '@/lib/stripe'
+import { stripe, isStripeConfigured } from '@/lib/stripe'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 /**
@@ -19,11 +19,22 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (!isStripeConfigured || !stripe) {
+      console.warn('Stripe not configured; skipping daily tasks cron job')
+      return NextResponse.json(
+        successResponse(
+          { processed: 0 },
+          'Stripe not configured; daily tasks skipped'
+        )
+      )
+    }
+
     // Get all admins with past_due or unpaid subscriptions
     const { data: unpaidAdmins, error } = await supabase
       .from('admins')
       .select('id, email, subscription_id, subscription_status')
       .in('subscription_status', ['past_due', 'unpaid'])
+      .returns<Array<{ id: string; email: string; subscription_id: string | null; subscription_status: string }>>()
 
     if (error) {
       throw error
@@ -39,7 +50,7 @@ export async function GET(request: NextRequest) {
 
           // Update status if changed
           if (subscription.status !== admin.subscription_status) {
-            await supabase
+            await (supabase as any)
               .from('admins')
               .update({ subscription_status: subscription.status })
               .eq('id', admin.id)
@@ -70,4 +81,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

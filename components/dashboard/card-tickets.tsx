@@ -30,8 +30,8 @@ export function CardTickets() {
           {tickets.map((ticket) => (
             <div key={ticket.id} className="flex items-center justify-between p-4 bg-[#0E141B] rounded-lg border border-white/5">
               <div>
-                <h4 className="font-semibold mb-1">{ticket.title}</h4>
-                <p className="text-sm text-muted-foreground">{ticket.date}</p>
+                <h4 className="font-semibold mb-1 text-white">{ticket.title}</h4>
+                <p className="text-sm text-gray-400">{ticket.date}</p>
               </div>
               <div className="flex gap-2">
                 <Badge className={getStatusColor(ticket.status)}>

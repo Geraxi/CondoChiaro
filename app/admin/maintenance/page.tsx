@@ -1,9 +1,9 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Wrench, CheckCircle, Clock, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { maintenanceTickets, workOrders } from '@/lib/data/maintenance'
 
 export default function AdminMaintenance() {
   return (
@@ -21,11 +21,8 @@ export default function AdminMaintenance() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { id: 'T-001', title: 'Riparazione ascensore', from: 'Mario Rossi', priority: 'alta', date: '2 giorni fa' },
-                { id: 'T-002', title: 'Sostituzione lampadine', from: 'Luisa Bianchi', priority: 'media', date: '5 giorni fa' },
-              ].map((ticket, idx) => (
-                <div key={idx} className="p-4 bg-[#0E141B] rounded-lg border border-white/5">
+              {maintenanceTickets.map((ticket) => (
+                <div key={ticket.id} className="p-4 bg-[#0E141B] rounded-lg border border-white/5">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h4 className="font-medium">{ticket.id} - {ticket.title}</h4>
@@ -52,11 +49,8 @@ export default function AdminMaintenance() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { id: 'WO-001', title: 'Pulizia scale', supplier: 'Pulizie SRL', status: 'in_lavoro', progress: '60%' },
-                { id: 'WO-002', title: 'Manutenzione caldaia', supplier: 'Tecno Service', status: 'completato', progress: '100%' },
-              ].map((work, idx) => (
-                <div key={idx} className="p-4 bg-[#0E141B] rounded-lg border border-white/5">
+              {workOrders.map((work) => (
+                <div key={work.id} className="p-4 bg-[#0E141B] rounded-lg border border-white/5">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h4 className="font-medium">{work.id} - {work.title}</h4>
@@ -71,9 +65,9 @@ export default function AdminMaintenance() {
                   {work.status === 'in_lavoro' && (
                     <div className="mt-3">
                       <div className="h-2 bg-[#0E141B] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#1FA9A0] rounded-full" style={{ width: work.progress }}></div>
+                        <div className="h-full bg-[#1FA9A0] rounded-full" style={{ width: `${work.progress}%` }}></div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Progresso: {work.progress}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Progresso: {work.progress}%</p>
                     </div>
                   )}
                 </div>

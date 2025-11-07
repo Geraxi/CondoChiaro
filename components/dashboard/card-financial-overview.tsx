@@ -21,12 +21,12 @@ const expenseData = [
 export function CardFinancialOverview() {
   return (
     <div className="bg-[#1A1F26] rounded-2xl p-6 border border-white/10">
-      <h3 className="text-xl font-semibold mb-6">Overview Finanziaria</h3>
+      <h3 className="text-xl font-semibold mb-6 text-white">Overview Finanziaria</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Line Chart */}
         <div>
-          <h4 className="text-sm text-muted-foreground mb-4">Entrate/Uscite Mensili</h4>
+          <h4 className="text-sm text-gray-400 mb-4">Entrate/Uscite Mensili</h4>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#2A3441" />
@@ -42,15 +42,15 @@ export function CardFinancialOverview() {
 
         {/* Pie Chart */}
         <div>
-          <h4 className="text-sm text-muted-foreground mb-4">Distribuzione Spese</h4>
+          <h4 className="text-sm text-gray-400 mb-4">Distribuzione Spese</h4>
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie
                 data={expenseData}
                 cx="50%"
-                cy="45%"
+                  cy="50%"
                 labelLine={true}
-                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                label={(props: any) => `${(props.percent * 100).toFixed(0)}%`}
                 outerRadius={95}
                 innerRadius={35}
                 fill="#8884d8"

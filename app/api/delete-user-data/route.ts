@@ -34,37 +34,46 @@ export async function DELETE(request: NextRequest) {
 
     // Delete in order: documents, suppliers, tenants, apartments, condominiums, admin profile
     // RLS policies ensure users can only delete their own data
-    
-    const deleteOperations = [
-      // Delete documents
-      supabase.from('documents').delete().in('condominium_id', 
-        supabase.from('condominiums').select('id').eq('admin_id', user.id)
-      ),
-      // Delete suppliers
-      supabase.from('suppliers').delete().in('condominium_id',
-        supabase.from('condominiums').select('id').eq('admin_id', user.id)
-      ),
-      // Delete tenants
-      supabase.from('tenants').delete().in('condominium_id',
-        supabase.from('condominiums').select('id').eq('admin_id', user.id)
-      ),
-      // Delete apartments
-      supabase.from('apartments').delete().in('condominium_id',
-        supabase.from('condominiums').select('id').eq('admin_id', user.id)
-      ),
-      // Delete condominiums
-      supabase.from('condominiums').delete().eq('admin_id', user.id),
-      // Delete admin profile
-      supabase.from('admins').delete().eq('id', user.id),
-    ]
 
-    // Execute deletions sequentially to respect foreign key constraints
-    for (const operation of deleteOperations) {
-      const { error } = await operation
-      if (error) {
-        console.error('Deletion error:', error)
-        // Continue with other deletions even if one fails
+    const { data: condominiumRows, error: condominiumFetchError } = await supabase
+      .from('condominiums')
+      .select('id')
+      .eq('admin_id', user.id)
+      .returns<Array<{ id: string }>>()
+
+    if (condominiumFetchError) {
+      console.error('Failed to load condominiums for deletion:', condominiumFetchError)
+    }
+
+    const condominiumIds = (condominiumRows || []).map((row) => row.id)
+
+    if (condominiumIds.length > 0) {
+      const relatedTables = ['documents', 'suppliers', 'tenants', 'apartments'] as const
+
+      for (const table of relatedTables) {
+        const { error } = await (supabase as any)
+          .from(table)
+          .delete()
+          .in('condominium_id', condominiumIds)
+
+        if (error) {
+          console.error(`Deletion error on table ${table}:`, error)
+        }
       }
+
+      const { error: condosDeleteError } = await (supabase as any)
+        .from('condominiums')
+        .delete()
+        .in('id', condominiumIds)
+
+      if (condosDeleteError) {
+        console.error('Condominium deletion error:', condosDeleteError)
+      }
+    }
+
+    const { error: adminDeleteError } = await supabase.from('admins').delete().eq('id', user.id)
+    if (adminDeleteError) {
+      console.error('Admin deletion error:', adminDeleteError)
     }
 
     // Delete auth user (Supabase Admin API - requires service role key)
@@ -85,4 +94,9 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
+
+
+
+
+
 

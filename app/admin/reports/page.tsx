@@ -67,7 +67,7 @@ export default function AdminReports() {
                   cx="50%"
                   cy="45%"
                   labelLine={true}
-                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  label={(props: any) => `${(props.percent * 100).toFixed(0)}%`}
                   outerRadius={110}
                   innerRadius={40}
                   fill="#8884d8"
