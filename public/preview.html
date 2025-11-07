@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CondoChiaro - Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .condo-teal {
+            background: linear-gradient(135deg, #1FA9A0 0%, #14938B 100%);
+        }
+
+        .dark-gradient {
+            background: linear-gradient(180deg, #0F172A 0%, #020617 100%);
+        }
+
+        .feature-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(31, 169, 160, 0.1);
+        }
+
+        .feature-card:hover {
+            border-color: #1FA9A0;
+            box-shadow: 0 10px 40px rgba(31, 169, 160, 0.15);
+            transform: translateY(-2px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="dark-gradient min-h-screen text-white">
+    <div class="container mx-auto px-6 py-12">
+        <!-- Header -->
+        <header class="text-center mb-16">
+            <div class="floating inline-block mb-6">
+                <div class="w-20 h-20 condo-teal rounded-2xl flex items-center justify-center text-3xl font-bold shadow-2xl">
+                    CC
+                </div>
+            </div>
+            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                CondoChiaro
+            </h1>
+            <p class="text-xl text-gray-300 mb-2">Software Gestione Condominiale</p>
+            <p class="text-sm text-gray-400">Preview SaaS Platform - Production Ready</p>
+        </header>
+
+        <!-- Status Badge -->
+        <div class="text-center mb-12">
+            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium condo-teal text-white">
+                <span class="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
+                Server Running: http://localhost:3000
+            </span>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            <!-- Authentication -->
+            <div class="glassmorphism feature-card rounded-2xl p-6">
+                <div class="w-12 h-12 condo-teal rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Autenticazione Multi-Ruolo</h3>
+                <p class="text-gray-400 mb-4">Login, signup, password reset con gestione ruoli (Admin, Condòmino, Fornitore)</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">Supabase Auth</span>
+                    <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">Role-based</span>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="glassmorphism feature-card rounded-2xl p-6">
+                <div class="w-12 h-12 condo-teal rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Dashboard Personali</h3>
+                <p class="text-gray-400 mb-4">Interfacce dedicate per amministratori, condòmini e fornitori</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs">Next.js 14</span>
+                    <span class="px-2 py-1 bg-pink-500/20 text-pink-400 rounded text-xs">Responsive</span>
+                </div>
+            </div>
+
+            <!-- Document Management -->
+            <div class="glassmorphism feature-card rounded-2xl p-6">
+                <div class="w-12 h-12 condo-teal rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Gestione Documenti</h3>
+                <p class="text-gray-400 mb-4">Upload, organizzazione e riassunti AI per documenti condominiali</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs">File Upload</span>
+                    <span class="px-2 py-1 bg-orange-500/20 text-orange-400 rounded text-xs">AI Summary</span>
+                </div>
+            </div>
+
+            <!-- Payments -->
+            <div class="glassmorphism feature-card rounded-2xl p-6">
+                <div class="w-12 h-12 condo-teal rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Pagamenti & Abbonamenti</h3>
+                <p class="text-gray-400 mb-4">Sistema di abbonamento con fatturazione forfettaria italiana</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">Stripe</span>
+                    <span class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">Forfettario</span>
+                </div>
+            </div>
+
+            <!-- API Infrastructure -->
+            <div class="glassmorphism feature-card rounded-2xl p-6">
+                <div class="w-12 h-12 condo-teal rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">API Endpoints</h3>
+                <p class="text-gray-400 mb-4">API RESTful complete per condomini, condòmini, documenti e pagamenti</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded text-xs">REST API</span>
+                    <span class="px-2 py-1 bg-teal-500/20 text-teal-400 rounded text-xs">TypeScript</span>
+                </div>
+            </div>
+
+            <!-- Database -->
+            <div class="glassmorphism feature-card rounded-2xl p-6">
+                <div class="w-12 h-12 condo-teal rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Database PostgreSQL</h3>
+                <p class="text-gray-400 mb-4">Schema completo con RLS policies per sicurezza dati per ruolo</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-2 py-1 bg-indigo-500/20 text-indigo-400 rounded text-xs">Supabase</span>
+                    <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">RLS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Routes Section -->
+        <div class="glassmorphism rounded-2xl p-8 mb-16">
+            <h2 class="text-2xl font-bold mb-6 text-center">Available Routes</h2>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 condo-teal">Authentication</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/login</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/register</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/reset-password</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 condo-teal">Dashboards</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/admin/dashboard</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/tenant/dashboard</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/supplier/dashboard</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 condo-teal">API Endpoints</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/api/health</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/api/condominiums</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-gray-400">/api/documents/upload</span>
+                            <span class="text-green-400">✓</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="text-center">
+            <div class="glassmorphism rounded-2xl p-8 inline-block">
+                <h2 class="text-2xl font-bold mb-4">Ready for Production</h2>
+                <p class="text-gray-300 mb-6 max-w-2xl">
+                    CondoChiaro is a complete SaaS platform ready for deployment.
+                    Configure your Supabase and Stripe credentials to go live.
+                </p>
+                <div class="flex gap-4 justify-center">
+                    <div class="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg">
+                        ✅ Authentication System
+                    </div>
+                    <div class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg">
+                        ✅ Database Schema
+                    </div>
+                    <div class="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg">
+                        ✅ Payment Integration
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-16 text-gray-500">
+            <p>CondoChiaro © 2024 - Software gestione condominiale per l'Italia</p>
+            <p class="text-sm mt-2">Built with Next.js 14, TypeScript, Supabase, & TailwindCSS</p>
+        </footer>
+    </div>
+</body>
+</html>
