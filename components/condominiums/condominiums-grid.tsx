@@ -10,6 +10,12 @@ import Link from 'next/link'
 import { AddCondominiumModal } from './add-condominium-modal'
 import toast from 'react-hot-toast'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
+
+const FormattedNumber = dynamic(
+  () => import('@/components/ui/formatted-number').then(mod => ({ default: mod.FormattedNumber })),
+  { ssr: false }
+)
 
 export function CondominiumsGrid() {
   const [condominiums, setCondominiums] = useState<Condominium[]>([])
@@ -174,7 +180,7 @@ export function CondominiumsGrid() {
                       <div className="flex items-center gap-2 text-sm">
                         <Euro className="w-4 h-4 text-[#1FA9A0]" />
                         <span className="text-gray-300">
-                          €{condominium.monthly_revenue?.toLocaleString('it-IT') || '0'}
+                          <FormattedNumber value={condominium.monthly_revenue || 0} prefix="€" />
                         </span>
                         <span className="text-gray-400">mensili</span>
                       </div>

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
 /**
  * Next.js Middleware
- * Handles maintenance mode and other global checks
+ * Handles authentication, maintenance mode and other global checks
  */
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -21,36 +22,64 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check maintenance mode for protected routes
+  // Check authentication for protected routes (before maintenance mode check)
   if (pathname.startsWith('/admin') || pathname.startsWith('/tenant') || pathname.startsWith('/supplier')) {
+    const response = NextResponse.next()
+
+    let authenticatedUser: { id: string } | null = null
+
+    try {
+      // Create Supabase client using @supabase/ssr
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              const cookies = request.cookies.getAll()
+              return cookies.map(cookie => ({
+                name: cookie.name,
+                value: cookie.value,
+              }))
+            },
+            setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options)
+              })
+            },
+          },
+        }
+      )
+
+      // Check if user is authenticated
+      const { data: { user }, error } = await supabase.auth.getUser()
+
+      // Redirect unauthenticated users to login
+      if (!user || error) {
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect', pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+
+      // Store authenticated user for maintenance mode check
+      authenticatedUser = user
+    } catch (error) {
+      console.error('Middleware authentication error:', error)
+      // On error, redirect to login for safety
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    // Check maintenance mode for protected routes (after authentication check)
     try {
       // Import dynamically to avoid SSR issues
       const { checkMaintenanceMode, canBypassMaintenance } = await import('@/lib/maintenance-mode')
       const maintenance = await checkMaintenanceMode()
 
-      if (maintenance.enabled) {
-        // Check if user is admin (can bypass)
-        const token = request.cookies.get('sb-access-token')?.value
-        let canBypass = false
-
-        if (token) {
-          try {
-            const { createClient } = await import('@supabase/supabase-js')
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-            const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-            if (supabaseUrl && supabaseAnonKey) {
-              const supabase = createClient(supabaseUrl, supabaseAnonKey)
-              const { data: { user } } = await supabase.auth.getUser(token)
-              
-              if (user) {
-                canBypass = await canBypassMaintenance(user.id)
-              }
-            }
-          } catch (error) {
-            console.error('Error checking user bypass:', error)
-          }
-        }
+      if (maintenance.enabled && authenticatedUser) {
+        // Check if user can bypass maintenance (e.g., admin)
+        const canBypass = await canBypassMaintenance(authenticatedUser.id)
 
         if (!canBypass) {
           return NextResponse.json(
@@ -64,9 +93,11 @@ export async function middleware(request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error('Middleware error:', error)
-      // Don't block requests on middleware errors
+      console.error('Middleware maintenance mode error:', error)
+      // Don't block requests on middleware errors, but log them
     }
+
+    return response
   }
 
   return NextResponse.next()

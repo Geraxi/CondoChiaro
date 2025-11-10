@@ -6,6 +6,12 @@ import { Button } from '@/components/ui/button'
 import { ResponsiveContainer, BarChart, Bar, XAxis, CartesianGrid, Tooltip } from 'recharts'
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import dynamic from 'next/dynamic'
+
+const FormattedNumber = dynamic(
+  () => import('@/components/ui/formatted-number').then(mod => ({ default: mod.FormattedNumber })),
+  { ssr: false }
+)
 
 type AnalyticsResponse = {
   totalCondominiums: number
@@ -154,31 +160,31 @@ export function AnalyticsOverview() {
           label="Condomini attivi"
           value={data?.totalCondominiums ?? 0}
           loading={loading}
-          formatter={(value) => `${value}`}
+          isCurrency={false}
         />
         <MetricCard
           label="MRR abbonamenti"
           value={data?.subscriptionMRR ?? 0}
           loading={loading}
-          formatter={currencyFormatter.format.bind(currencyFormatter)}
+          isCurrency={true}
         />
         <MetricCard
           label="Ricavi commissioni"
           value={data?.paymentFeeRevenue ?? 0}
           loading={loading}
-          formatter={currencyFormatter.format.bind(currencyFormatter)}
+          isCurrency={true}
         />
         <MetricCard
           label="Ricavi Supplier Pro"
           value={data?.supplierRevenue ?? 0}
           loading={loading}
-          formatter={currencyFormatter.format.bind(currencyFormatter)}
+          isCurrency={true}
         />
         <MetricCard
           label="Profitto mensile netto"
           value={data?.netMonthlyProfit ?? 0}
           loading={loading}
-          formatter={currencyFormatter.format.bind(currencyFormatter)}
+          isCurrency={true}
           highlight
         />
         <Button
@@ -199,13 +205,13 @@ function MetricCard({
   label,
   value,
   loading,
-  formatter,
+  isCurrency = false,
   highlight,
 }: {
   label: string
   value: number
   loading: boolean
-  formatter: (value: number) => string
+  isCurrency?: boolean
   highlight?: boolean
 }) {
   return (
@@ -220,7 +226,11 @@ function MetricCard({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-semibold text-white">
-          {loading ? '...' : formatter(value)}
+          {loading ? '...' : isCurrency ? (
+            <FormattedNumber value={value} prefix="€" />
+          ) : (
+            <span suppressHydrationWarning>{value}</span>
+          )}
         </div>
       </CardContent>
     </Card>

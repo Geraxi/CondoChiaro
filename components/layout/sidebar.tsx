@@ -73,7 +73,7 @@ export function Sidebar({ role }: SidebarProps) {
       <div className="flex flex-col h-full">
         {/* Logo */}
         <div className="h-16 flex items-center justify-center border-b border-white/10 px-4">
-          <Link href={`/${role}/dashboard`} className="flex items-center">
+          <Link href={`/${role}/dashboard`} className="flex items-center no-underline">
             <Image
               src="/images/condochiaro-logo.png"
               alt="CondoChiaro Logo"
@@ -98,9 +98,9 @@ export function Sidebar({ role }: SidebarProps) {
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative z-10 text-gray-300 visited:text-gray-300",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative z-10 text-gray-300 no-underline",
                       isActive
-                        ? "bg-[#1FA9A0]/20 text-[#1FA9A0] visited:text-[#1FA9A0] border border-[#1FA9A0]/30"
+                        ? "bg-[#1FA9A0]/20 text-[#1FA9A0] border border-[#1FA9A0]/30"
                         : "hover:text-white hover:bg-white/5"
                     )}
                   >
@@ -117,7 +117,7 @@ export function Sidebar({ role }: SidebarProps) {
         <div className="p-4 border-t border-white/10">
           <Link 
             href="/"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors no-underline"
           >
             ← Torna alla home
           </Link>

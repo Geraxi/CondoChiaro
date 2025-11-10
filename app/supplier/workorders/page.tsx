@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+const SafeStats = dynamic(() => import('@/components/ui/safe-stats').then(mod => ({ default: mod.SafeStats })))
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -261,13 +264,13 @@ export default function SupplierWorkOrders() {
                     {job.amount_est && (
                       <div className="flex items-center justify-between">
                         <span className="text-gray-400">Importo stimato:</span>
-                        <span className="text-white font-semibold">€{job.amount_est.toLocaleString('it-IT')}</span>
+                        <span className="text-white font-semibold"><SafeStats value={job.amount_est} prefix="€" /></span>
                       </div>
                     )}
                     {job.amount_final && (
                       <div className="flex items-center justify-between">
                         <span className="text-gray-400">Importo finale:</span>
-                        <span className="text-white font-semibold">€{job.amount_final.toLocaleString('it-IT')}</span>
+                        <span className="text-white font-semibold"><SafeStats value={job.amount_final} prefix="€" /></span>
                       </div>
                     )}
                     {job.admins && (
@@ -302,7 +305,7 @@ export default function SupplierWorkOrders() {
                       <Button
                         onClick={() => {
                           // Navigate to job detail or open quote dialog
-                          toast.info('Funzionalità in sviluppo')
+                          toast('Funzionalità in sviluppo')
                         }}
                         className="flex-1 bg-[#1FA9A0] hover:bg-[#17978E]"
                       >

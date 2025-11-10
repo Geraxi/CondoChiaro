@@ -212,7 +212,7 @@ export function Header({ role }: HeaderProps) {
               setShowAI(false)
               setShowNotifications((prev) => !prev)
             }}
-            className="relative p-2 text-gray-400 hover:text-white transition-colors"
+            className="relative p-2 text-gray-400 hover:text-white transition-colors border-none bg-transparent outline-none"
             aria-haspopup="true"
             aria-expanded={showNotifications}
           >
@@ -241,7 +241,7 @@ export function Header({ role }: HeaderProps) {
                   <li key={notification.id}>
                     <Link
                       href={notification.actionHref}
-                      className="block px-4 py-3 hover:bg-white/5 transition-colors"
+                      className="block px-4 py-3 hover:bg-white/5 transition-colors no-underline"
                       onClick={() => setShowNotifications(false)}
                     >
                       <p className="text-sm font-medium text-white">{notification.title}</p>
@@ -254,7 +254,7 @@ export function Header({ role }: HeaderProps) {
               <div className="px-4 py-3 border-t border-white/10">
                 <Link
                   href={communicationsLink}
-                  className="text-sm text-[#1FA9A0] hover:text-[#27C5B9]"
+                  className="text-sm text-[#1FA9A0] hover:text-[#27C5B9] no-underline"
                   onClick={() => setShowNotifications(false)}
                 >
                   Vedi tutte le comunicazioni →

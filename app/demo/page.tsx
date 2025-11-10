@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -86,21 +86,34 @@ export default function DemoPage() {
           </CardContent>
         </Card>
 
-        <div className="text-center">
-          <p className="text-muted-foreground mb-4">
-            Oppure contattaci direttamente
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/register">
-              <Button variant="outline">
-                Registrati Gratis
+        <div className="text-center space-y-4">
+          <div>
+            <p className="text-muted-foreground mb-4">
+              Esplora le dashboard interattive
+            </p>
+            <Link href="/demo/select">
+              <Button className="bg-[#1FA9A0] hover:bg-[#17978E] mb-4">
+                <Eye className="h-4 w-4 mr-2" />
+                Visualizza Demo Dashboard
               </Button>
             </Link>
-            <Link href="/login">
-              <Button>
-                Accedi
-              </Button>
-            </Link>
+          </div>
+          <div>
+            <p className="text-muted-foreground mb-4">
+              Oppure contattaci direttamente
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link href="/register">
+                <Button variant="outline">
+                  Registrati Gratis
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button>
+                  Accedi
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

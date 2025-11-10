@@ -1,6 +1,9 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+const SafeStats = dynamic(() => import('@/components/ui/safe-stats').then(mod => ({ default: mod.SafeStats })))
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import {
   maintenanceTickets,
@@ -31,17 +34,23 @@ export default function SupplierDashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
-            { label: 'Ticket Attivi', value: String(activeTickets), color: 'text-[#1FA9A0]' },
-            { label: 'Ordini Completati', value: String(completedOrders), color: 'text-green-400' },
-            { label: 'Fatture Pendenti', value: `€${pendingInvoicesTotal.toLocaleString('it-IT')}`, color: 'text-yellow-400' },
-            { label: 'Ordini in Lavorazione', value: String(inProgressOrders.length), color: 'text-blue-400' },
+            { label: 'Ticket Attivi', value: activeTickets, color: 'text-[#1FA9A0]', isNumber: false },
+            { label: 'Ordini Completati', value: completedOrders, color: 'text-green-400', isNumber: false },
+            { label: 'Fatture Pendenti', value: pendingInvoicesTotal, color: 'text-yellow-400', isNumber: true, prefix: '€' },
+            { label: 'Ordini in Lavorazione', value: inProgressOrders.length, color: 'text-blue-400', isNumber: false },
           ].map((stat, idx) => (
             <Card key={idx} className="bg-[#1A1F26] border-white/10">
               <CardHeader className="pb-2">
                 <CardDescription>{stat.label}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                <div className={`text-2xl font-bold ${stat.color}`}>
+                  {stat.isNumber ? (
+                    <SafeStats value={stat.value} prefix={stat.prefix} />
+                  ) : (
+                    String(stat.value)
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

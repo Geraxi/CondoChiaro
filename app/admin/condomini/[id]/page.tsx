@@ -13,6 +13,12 @@ import { AddTenantModal } from '@/components/condominiums/add-tenant-modal'
 import { AddApartmentModal } from '@/components/condominiums/add-apartment-modal'
 import { AddSupplierModal } from '@/components/condominiums/add-supplier-modal'
 import { AddDocumentModal } from '@/components/condominiums/add-document-modal'
+import dynamic from 'next/dynamic'
+
+const FormattedNumber = dynamic(
+  () => import('@/components/ui/formatted-number').then(mod => ({ default: mod.FormattedNumber })),
+  { ssr: false }
+)
 
 export default function CondominiumDetailPage() {
   const params = useParams()
@@ -233,7 +239,7 @@ export default function CondominiumDetailPage() {
                   <CardDescription>Totale Entrate Mensili</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">€{totalRevenue.toLocaleString('it-IT')}</div>
+                  <div className="text-3xl font-bold"><FormattedNumber value={totalRevenue} prefix="€" /></div>
                 </CardContent>
               </Card>
               <Card className="bg-[#1A1F26] border-white/10">
