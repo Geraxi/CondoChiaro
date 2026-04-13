@@ -172,8 +172,14 @@ export function Header({ role }: HeaderProps) {
   }, [showNotifications])
 
   const handleLogout = async () => {
-    // TODO: Implement Supabase logout
-    window.location.href = '/login'
+    try {
+      await fetch('/api/auth/test-logout', { method: 'POST' })
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      window.location.href = '/login'
+    }
   }
 
   return (
