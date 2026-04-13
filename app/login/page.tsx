@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +12,6 @@ import { ArrowLeft } from 'lucide-react'
 import { TEST_CREDENTIALS } from '@/lib/dev-test-auth'
 
 export default function LoginPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -21,20 +20,20 @@ export default function LoginPage() {
 
   const redirectTo = useMemo(() => searchParams.get('redirect') ?? undefined, [searchParams])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const signInWithCredentials = async (loginEmail: string, loginPassword: string) => {
     setLoading(true)
     setMessage('')
 
     try {
       const response = await fetch('/api/auth/test-login', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
-          password,
+          email: loginEmail,
+          password: loginPassword,
           redirect: redirectTo,
         }),
       })
@@ -45,15 +44,19 @@ export default function LoginPage() {
         throw new Error(data.message || 'Credenziali non valide')
       }
 
-      setMessage('Accesso riuscito. Reindirizzamento in corso...')
-      router.push(data.redirectTo)
-      router.refresh()
+      setMessage('Accesso riuscito. Apertura dashboard...')
+      window.location.assign(data.redirectTo)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Errore durante l\'accesso'
       setMessage(errorMessage)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await signInWithCredentials(email, password)
   }
 
   return (
@@ -127,6 +130,24 @@ export default function LoginPage() {
                 </li>
               ))}
             </ul>
+            <div className="mt-4 space-y-2">
+              {TEST_CREDENTIALS.map((credential) => (
+                <Button
+                  key={`quick-${credential.email}`}
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left"
+                  disabled={loading}
+                  onClick={() => {
+                    setEmail(credential.email)
+                    setPassword(credential.password)
+                    void signInWithCredentials(credential.email, credential.password)
+                  }}
+                >
+                  Entra come {credential.role}
+                </Button>
+              ))}
+            </div>
           </div>
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Non hai un account? </span>
