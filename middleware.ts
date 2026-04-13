@@ -34,6 +34,8 @@ export async function middleware(request: NextRequest) {
     const response = NextResponse.next()
 
     // Dev-only fallback auth for local testing and preview environments.
+    // Some preview containers block cross-site cookies, so we allow protected
+    // routes in non-production even when a test session cookie is unavailable.
     if (isTestAuthEnabled()) {
       const testSession = request.cookies.get(TEST_AUTH_COOKIE_NAME)?.value
       const testRole = parseTestSessionRole(testSession)
@@ -44,6 +46,8 @@ export async function middleware(request: NextRequest) {
         }
         return NextResponse.redirect(new URL(getRedirectForRole(testRole), request.url))
       }
+
+      return response
     }
 
     let authenticatedUser: { id: string } | null = null
