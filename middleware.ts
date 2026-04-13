@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import {
+  getRedirectForRole,
+  isRoleAllowedForPath,
+  isTestAuthEnabled,
+  parseTestSessionRole,
+  TEST_AUTH_COOKIE_NAME,
+} from '@/lib/dev-test-auth'
 
 /**
  * Next.js Middleware
@@ -25,6 +32,19 @@ export async function middleware(request: NextRequest) {
   // Check authentication for protected routes (before maintenance mode check)
   if (pathname.startsWith('/admin') || pathname.startsWith('/tenant') || pathname.startsWith('/supplier')) {
     const response = NextResponse.next()
+
+    // Dev-only fallback auth for local testing and preview environments.
+    if (isTestAuthEnabled()) {
+      const testSession = request.cookies.get(TEST_AUTH_COOKIE_NAME)?.value
+      const testRole = parseTestSessionRole(testSession)
+
+      if (testRole) {
+        if (isRoleAllowedForPath(testRole, pathname)) {
+          return response
+        }
+        return NextResponse.redirect(new URL(getRedirectForRole(testRole), request.url))
+      }
+    }
 
     let authenticatedUser: { id: string } | null = null
 

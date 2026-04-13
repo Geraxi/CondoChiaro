@@ -1,30 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
+import { TEST_CREDENTIALS } from '@/lib/dev-test-auth'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  const redirectTo = useMemo(() => searchParams.get('redirect') ?? undefined, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
 
-    // Placeholder per autenticazione Supabase
-    // TODO: Implementare con Supabase Auth
-    setTimeout(() => {
-      setMessage('Link di accesso inviato! Controlla la tua email.')
+    try {
+      const response = await fetch('/api/auth/test-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          redirect: redirectTo,
+        }),
+      })
+
+      const data: { success?: boolean; message?: string; redirectTo?: string } = await response.json()
+
+      if (!response.ok || !data.success || !data.redirectTo) {
+        throw new Error(data.message || 'Credenziali non valide')
+      }
+
+      setMessage('Accesso riuscito. Reindirizzamento in corso...')
+      router.push(data.redirectTo)
+      router.refresh()
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Errore durante l\'accesso'
+      setMessage(errorMessage)
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -52,7 +81,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl">Accedi</CardTitle>
           <CardDescription>
-            Inserisci la tua email per ricevere il link di accesso
+            Inserisci email e password per entrare nella dashboard di test
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -68,15 +97,37 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Inserisci la password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
             {message && (
               <p className={`text-sm ${message.includes('errore') ? 'text-destructive' : 'text-primary'}`}>
                 {message}
               </p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Invio in corso...' : 'Invia link di accesso'}
+              {loading ? 'Accesso in corso...' : 'Accedi'}
             </Button>
           </form>
+          <div className="mt-6 rounded-lg border border-[#1FA9A0]/30 bg-[#1FA9A0]/10 p-4">
+            <p className="text-sm font-semibold text-[#1FA9A0] mb-2">Credenziali test disponibili</p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {TEST_CREDENTIALS.map((credential) => (
+                <li key={credential.email}>
+                  <span className="font-medium text-foreground">{credential.role}:</span>{' '}
+                  {credential.email} / {credential.password}
+                </li>
+              ))}
+            </ul>
+          </div>
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Non hai un account? </span>
             <Link href="/register" className="text-primary hover:underline">
